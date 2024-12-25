@@ -1,33 +1,33 @@
--- Initialize variables
-local isHoldingW = false
+-- Services
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager") -- For simulating inputs
 
--- Create the GUI
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local ToggleButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-local dragging, dragStart, startPos
+-- Variables
+local isHoldingW = false
+local dragging = false
+local dragStart = nil
+local startPos = nil
 
--- Setup ScreenGui
-ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "HoldWGui"
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+-- Create UI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+local ToggleButton = Instance.new("TextButton", Frame)
+
+-- Frame properties
+Frame.Size = UDim2.new(0, 200, 0, 50)
 Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
-Frame.Size = UDim2.new(0, 150, 0, 50)
-UICorner.Parent = Frame
+Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Frame.Active = true
+Frame.Draggable = false -- We'll implement custom dragging below
 
--- Setup ToggleButton
-ToggleButton.Parent = Frame
-ToggleButton.Text = "Toggle Hold W"
+-- ToggleButton properties
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-UICorner:Clone().Parent = ToggleButton
+ToggleButton.Text = "Start Holding W"
 
--- Dragging functionality
+-- Enable dragging for the frame
 Frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -49,20 +49,17 @@ Frame.InputEnded:Connect(function(input)
     end
 end)
 
--- Toggle W holding
+-- Toggle holding W
 ToggleButton.MouseButton1Click:Connect(function()
     isHoldingW = not isHoldingW
     ToggleButton.Text = isHoldingW and "Stop Holding W" or "Start Holding W"
 end)
 
--- Simulate W key press
+-- Simulate holding W
 RunService.RenderStepped:Connect(function()
     if isHoldingW then
-        local input = {
-            KeyCode = Enum.KeyCode.W,
-            UserInputState = Enum.UserInputState.Begin,
-            UserInputType = Enum.UserInputType.Keyboard,
-        }
-        UIS.InputBegan:Fire(input)
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, nil)
+    else
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, nil)
     end
 end)
