@@ -1,10 +1,10 @@
 -- Services
-local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local VirtualInputManager = game:GetService("VirtualInputManager") -- For simulating inputs
+local LocalPlayer = Players.LocalPlayer
 
 -- Variables
-local isHoldingW = false
+local isRunning = false
 local dragging = false
 local dragStart = nil
 local startPos = nil
@@ -19,15 +19,14 @@ Frame.Size = UDim2.new(0, 200, 0, 50)
 Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
 Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 Frame.Active = true
-Frame.Draggable = false -- We'll implement custom dragging below
 
 -- ToggleButton properties
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.Text = "Start Holding W"
+ToggleButton.Text = "Start Running"
 
--- Enable dragging for the frame
+-- Dragging functionality
 Frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -39,7 +38,12 @@ end)
 Frame.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
-        Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        Frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
 end)
 
@@ -49,17 +53,15 @@ Frame.InputEnded:Connect(function(input)
     end
 end)
 
--- Toggle holding W
+-- Toggle running
 ToggleButton.MouseButton1Click:Connect(function()
-    isHoldingW = not isHoldingW
-    ToggleButton.Text = isHoldingW and "Stop Holding W" or "Start Holding W"
+    isRunning = not isRunning
+    ToggleButton.Text = isRunning and "Stop Running" or "Start Running"
 end)
 
--- Simulate holding W
+-- Run forward
 RunService.RenderStepped:Connect(function()
-    if isHoldingW then
-        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, nil)
-    else
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, nil)
+    if isRunning and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:Move(Vector3.new(0, 0, -1), true)
     end
 end)
